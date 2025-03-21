@@ -1,90 +1,83 @@
 const express = require('express');
-const xlsx = require('xlsx');
+const { google } = require('googleapis');
 const fs = require('fs');
-const cors = require('cors'); // Importa el módulo cors
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
-app.use(cors()); // Habilita CORS para permitir solicitudes desde el front-end
+app.use(cors()); // Permite solicitudes desde el front-end
 
-const excelPath = './pedidos.xlsx'; // Ruta al archivo Excel
+// Ruta al archivo de credenciales descargado desde Google Cloud Console
+const CREDENTIALS_PATH = './credentials.json';
+const SPREADSHEET_ID = 'TU_ID_DE_LA_HOJA'; // Reemplaza con el ID de tu hoja
 
-// Verifica si el archivo Excel existe; si no, lo crea con columnas iniciales
-if (!fs.existsSync(excelPath)) {
-    const workbook = xlsx.utils.book_new();
-    const sheet = xlsx.utils.json_to_sheet([]);
-    xlsx.utils.book_append_sheet(workbook, sheet, 'Pedidos');
-    xlsx.writeFile(workbook, excelPath);
+// Autenticación con la API de Google
+const auth = new google.auth.GoogleAuth({
+    keyFile: CREDENTIALS_PATH,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
+
+// Función para agregar un pedido a Google Sheets
+async function agregarPedido(pedido) {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const values = [[pedido.id, pedido.nombre, pedido.telefono, pedido.producto, pedido.estado]];
+
+    try {
+        await sheets.spreadsheets.values.append({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Pedidos!A:E',
+            valueInputOption: 'USER_ENTERED',
+            resource: { values }
+        });
+    } catch (error) {
+        console.error('Error al agregar el pedido:', error);
+    }
 }
 
-// Función para leer los datos de la planilla
-function leerPedidos() {
+// Función para obtener todos los pedidos desde Google Sheets
+async function obtenerPedidos() {
+    const sheets = google.sheets({ version: 'v4', auth });
+
     try {
-        const workbook = xlsx.readFile(excelPath);
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        return xlsx.utils.sheet_to_json(sheet);
+        const res = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Pedidos!A:E'
+        });
+
+        const rows = res.data.values;
+        if (!rows || rows.length === 0) {
+            return [];
+        }
+
+        // Convierte las filas en objetos
+        const pedidos = rows.slice(1).map(row => ({
+            id: row[0],
+            nombre: row[1],
+            telefono: row[2],
+            producto: row[3],
+            estado: row[4]
+        }));
+        return pedidos;
     } catch (error) {
-        console.error('Error al leer el archivo Excel:', error);
+        console.error('Error al obtener los pedidos:', error);
         return [];
     }
 }
 
-// Función para escribir datos en la planilla
-function escribirPedidos(pedidos) {
-    try {
-        const workbook = xlsx.utils.book_new();
-        const sheet = xlsx.utils.json_to_sheet(pedidos);
-        xlsx.utils.book_append_sheet(workbook, sheet, 'Pedidos');
-        xlsx.writeFile(workbook, excelPath);
-    } catch (error) {
-        console.error('Error al escribir en el archivo Excel:', error);
-    }
-}
-
 // Endpoint para obtener todos los pedidos
-app.get('/pedidos', (req, res) => {
-    try {
-        const pedidos = leerPedidos();
-        res.json(pedidos);
-    } catch (error) {
-        console.error('Error al obtener los pedidos:', error);
-        res.status(500).send('Error al obtener los pedidos.');
-    }
+app.get('/pedidos', async (req, res) => {
+    const pedidos = await obtenerPedidos();
+    res.json(pedidos);
 });
 
 // Endpoint para agregar un nuevo pedido
-app.post('/pedidos', (req, res) => {
-    try {
-        console.log('Datos recibidos:', req.body); // Verifica qué datos llegan al servidor
-        const pedidos = leerPedidos();
-        pedidos.push(req.body); // Agregar el nuevo pedido a la lista
-        escribirPedidos(pedidos);
-        res.send('Pedido agregado con éxito');
-    } catch (error) {
-        console.error('Error al agregar el pedido:', error);
-        res.status(500).send('Error al agregar el pedido.');
-    }
+app.post('/pedidos', async (req, res) => {
+    const pedido = req.body;
+    await agregarPedido(pedido);
+    res.send('Pedido agregado con éxito');
 });
 
-// Endpoint para actualizar el estado del pedido
-app.patch('/pedidos', (req, res) => {
-    try {
-        const pedidos = leerPedidos();
-        const pedido = pedidos.find(p => p.id === req.body.id); // Buscar pedido por ID
-        if (pedido) {
-            pedido.estado = req.body.estado; // Actualizar el estado
-            escribirPedidos(pedidos);
-            res.send('Estado del pedido actualizado');
-        } else {
-            res.status(404).send('Pedido no encontrado');
-        }
-    } catch (error) {
-        console.error('Error al actualizar el pedido:', error);
-        res.status(500).send('Error al actualizar el pedido.');
-    }
-});
-
-// Inicia el servidor en el puerto 3000
+// Inicia el servidor
 app.listen(3000, () => {
     console.log('Servidor corriendo en http://localhost:3000');
 });
