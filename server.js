@@ -8,7 +8,7 @@ app.use(cors()); // Permite solicitudes desde el front-end
 
 // Ruta al archivo de credenciales descargado desde Google Cloud Console
 const CREDENTIALS_PATH = './credentials.json'; // Asegúrate de que este archivo esté en la raíz del proyecto
-const SPREADSHEET_ID = 'c74290456b1ece082aad4b217fcaca24c83eeb28'; // Reemplaza con el ID de tu Google Sheets
+const SPREADSHEET_ID = '1eLFP-TlHwdUuvTlLMxE7xEmWQ9d-mVYWKORF2jvL_18'; // Reemplaza con el ID de tu Google Sheets
 
 // Autenticación con la API de Google
 const auth = new google.auth.GoogleAuth({
