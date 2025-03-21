@@ -1,4 +1,4 @@
-const serverUrl = 'https://TUDOMINIO.onrender.com'; // Reemplaza con tu URL de Render
+const serverUrl = 'https://prolavan.onrender.com'; // Reemplaza con tu URL de Render
 
 // Registrar un pedido
 document.getElementById('pedidoForm').onsubmit = function (e) {
