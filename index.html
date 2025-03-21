@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Pedidos - Lavandería</title>
+    <title>Gestión de Pedidos</title>
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -11,12 +11,8 @@
     <form id="pedidoForm">
         <input type="text" id="nombre" placeholder="Nombre del cliente" required>
         <input type="tel" id="telefono" placeholder="Número de teléfono" required>
-        <input type="text" id="producto" placeholder="Producto a lavar (ej. camisa, sábana)" required>
+        <input type="text" id="producto" placeholder="Producto a lavar" required>
         <button type="submit">Agregar Pedido</button>
-    </form>
-    <form id="busquedaForm">
-        <input type="text" id="busqueda" placeholder="Buscar por ID, Nombre, Teléfono o Producto">
-        <button type="button" id="buscarBtn">Buscar</button>
     </form>
     <table id="pedidos">
         <thead>
@@ -26,7 +22,6 @@
                 <th>Teléfono</th>
                 <th>Producto</th>
                 <th>Estado</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody></tbody>
