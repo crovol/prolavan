@@ -1,6 +1,5 @@
 const express = require('express');
 const { google } = require('googleapis');
-const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
@@ -8,8 +7,8 @@ app.use(express.json());
 app.use(cors()); // Permite solicitudes desde el front-end
 
 // Ruta al archivo de credenciales descargado desde Google Cloud Console
-const CREDENTIALS_PATH = './credentials.json';
-const SPREADSHEET_ID = 'TU_ID_DE_LA_HOJA'; // Reemplaza con el ID de tu hoja
+const CREDENTIALS_PATH = './credentials.json'; // Asegúrate de que este archivo esté en la raíz del proyecto
+const SPREADSHEET_ID = 'TU_ID_DE_LA_HOJA'; // Reemplaza con el ID de tu Google Sheets
 
 // Autenticación con la API de Google
 const auth = new google.auth.GoogleAuth({
@@ -81,3 +80,4 @@ app.post('/pedidos', async (req, res) => {
 app.listen(3000, () => {
     console.log('Servidor corriendo en http://localhost:3000');
 });
+
